@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Jardín botánico 3D de seis especies con simulación de crecimiento, viento y shaders GLSL." />
+  <title>Práctica 04 | Jardín botánico en crecimiento</title>
+  <link rel="stylesheet" href="style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="main.js"></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand-lockup"><div class="brand-icon" aria-hidden="true">✿</div><div><p class="eyebrow">PRÁCTICA 04 · THREE.JS + GLSL</p><h1>Jardín botánico <span>en crecimiento</span></h1></div></div>
+      <div class="topbar-note"><span class="live-dot" id="statusDot"></span><span id="statusText">Simulación activa</span><span class="topbar-divider">/</span><span>Seis especies</span></div>
+    </header>
+    <section class="workspace">
+      <aside class="sidebar">
+        <section class="intro-block"><p class="section-kicker">LABORATORIO BOTÁNICO</p><h2>Explora cómo crece el jardín</h2><p class="muted">Las seis especies se desarrollan por etapas. Observa tallos, ramas, hojas y flores, y experimenta con la velocidad y el viento.</p></section>
+        <section class="control-card">
+          <div class="card-heading"><span class="heading-icon">⌘</span><h3>Controles de simulación</h3></div>
+          <button id="animationButton" class="action-button primary" type="button" aria-pressed="false"><span class="button-symbol">Ⅱ</span><span id="animationButtonText">Pausar animación</span></button>
+          <button id="restartGrowthButton" class="action-button" type="button"><span class="button-symbol">↺</span><span>Reiniciar crecimiento</span></button>
+          <button id="leafColorButton" class="action-button" type="button"><span class="button-symbol color-symbol">◉</span><span>Cambiar color de hojas</span></button>
+          <button id="resetCameraButton" class="action-button" type="button"><span class="button-symbol">⌖</span><span>Reiniciar cámara</span></button>
+          <button id="toggleLeavesButton" class="action-button" type="button" aria-pressed="true"><span class="button-symbol">◌</span><span id="toggleLeavesText">Ocultar hojas</span></button>
+          <div class="range-control"><div class="range-topline"><label for="growthSpeed">Velocidad de crecimiento</label><output id="growthSpeedValue" for="growthSpeed">1.0×</output></div><input id="growthSpeed" type="range" min="0.3" max="2.5" value="1" step="0.1" /><div class="range-labels"><span>Lenta</span><span>Rápida</span></div></div>
+          <div class="range-control"><div class="range-topline"><label for="windStrength">Intensidad del viento</label><output id="windStrengthValue" for="windStrength">0.45</output></div><input id="windStrength" type="range" min="0" max="1.5" value="0.45" step="0.05" /><div class="range-labels"><span>Sin viento</span><span>Fuerte</span></div></div>
+          <div class="range-control no-divider"><div class="range-topline"><label for="lightIntensity">Intensidad de luz</label><output id="lightValue" for="lightIntensity">1.8</output></div><input id="lightIntensity" type="range" min="0" max="3" value="1.8" step="0.1" /><div class="range-labels"><span>Suave</span><span>Intensa</span></div></div>
+        </section>
+        <section class="growth-card" aria-live="polite"><div class="card-heading"><span class="heading-icon">↗</span><h3>Progreso del jardín</h3></div><div class="growth-readout"><strong id="overallProgress">0%</strong><span id="stageLabel" class="stage-pill">Brote inicial</span></div><div class="progress-track" id="progressTrack" role="progressbar" aria-label="Progreso general del crecimiento" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progressFill" class="progress-fill"></div></div><div class="progress-foot"><span>Inicio</span><span>Jardín desarrollado</span></div><p id="growthMessage" class="muted small-note">El crecimiento comenzará desde la base de cada planta.</p></section>
+        <section class="info-card" aria-live="polite"><div class="card-heading info-heading"><span class="heading-icon">ⓘ</span><h3>Ficha de la parte</h3><span class="selection-dot"></span></div>
+          <div id="infoEmpty" class="empty-state"><div class="cursor-illustration" aria-hidden="true">⌖</div><p class="empty-title">Ninguna parte seleccionada</p><p class="muted small">Haz clic en una hoja, tallo, rama, flor, espina o maceta para consultar su ficha y su progreso.</p></div>
+          <div id="infoDetails" class="info-details" hidden><p class="detail-label">PARTE SELECCIONADA</p><h4 id="partName">—</h4><div class="detail-grid"><div class="detail-item"><span>Geometría</span><strong id="partGeometry">—</strong></div><div class="detail-item"><span>Altura aprox.</span><strong id="partHeight">—</strong></div><div class="detail-item species-item"><span>Especie</span><strong id="partPlant">—</strong></div></div><div class="part-progress-heading"><span>Estado de crecimiento</span><strong id="partProgress">—</strong></div><div class="part-progress-track"><div id="partProgressFill" class="part-progress-fill"></div></div><p class="detail-label description-label">FUNCIÓN</p><p id="partDescription" class="description-text">—</p></div>
+        </section>
+        <div class="sidebar-footer"><span class="footer-leaf">❧</span><span>Seis especies · simulación educativa con GLSL</span></div>
+      </aside>
+      <section class="viewer-panel" aria-label="Visor 3D del jardín botánico en crecimiento"><div class="viewer-topline"><div><span class="stage-tag">CRECIMIENTO PROCEDURAL</span><span class="stage-title">Jardín de seis especies en desarrollo</span></div><span class="drag-hint"><span class="mouse-icon">↔</span> Arrastra para rotar</span></div>
+        <div id="sceneContainer" class="scene-container"><div class="scene-overlay scene-overlay-top"><span class="tiny-dot"></span><span id="sceneStage">ETAPA: BROTE INICIAL</span></div><div class="scene-overlay scene-overlay-bottom"><span>Órbita · Zoom · Selección por clic</span><span class="axis-legend"><b>X</b><i>Y</i><em>Z</em></span></div><div id="loadingMessage" class="loading-message">Preparando el jardín botánico…</div><div id="errorMessage" class="error-message" hidden></div></div>
+        <div class="viewer-caption"><div class="caption-item"><span class="caption-icon green">↗</span><span><strong>Crecimiento gradual</strong><small>Tallos, ramas, hojas y flores</small></span></div><div class="caption-item"><span class="caption-icon amber">≈</span><span><strong>Viento interactivo</strong><small>Oscilación y movimiento GLSL</small></span></div><div class="caption-item"><span class="caption-icon blue">⌖</span><span><strong>Selección por partes</strong><small>Ficha con porcentaje de crecimiento</small></span></div></div>
+      </section>
+    </section>
+  </main>
+</body>
+</html>
